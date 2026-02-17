@@ -1,0 +1,31 @@
+@echo off
+set SERVICE=bthserv
+
+echo Проверка службы Bluetooth...
+
+sc query %SERVICE% >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Служба Bluetooth не найдена.
+    pause
+    exit
+)
+
+for /f "tokens=3 delims=: " %%H in ('sc query %SERVICE% ^| find "STATE"') do set STATUS=%%H
+
+echo Текущий статус: %STATUS%
+
+if "%STATUS%"=="RUNNING" (
+    echo Служба запущена. Перезапускаю...
+    net stop %SERVICE% /y
+    timeout /t 3 /nobreak > nul
+    net start %SERVICE%
+) else (
+    echo Служба остановлена. Запускаю...
+    net start %SERVICE%
+)
+
+for /f "tokens=3 delims=: " %%H in ('sc query %SERVICE% ^| find "STATE"') do set STATUS=%%H
+echo Итоговый статус: %STATUS%
+
+echo Готово.
+pause
